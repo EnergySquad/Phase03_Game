@@ -8,6 +8,7 @@ public class FireExtinguisherBoost : MonoBehaviour
     public GameObject gameOver;
     private ParticleSystem extinguisherSmoke;
     public ExplosionParticleController explosionController;
+    public GameObject leaderBoard;
 
     void Start()
     {
@@ -82,6 +83,9 @@ public class FireExtinguisherBoost : MonoBehaviour
                             // Resume the game
                             Time.timeScale = 1;
                             gameOver.SetActive(false);
+
+                            leaderBoard.SetActive(true);
+                            Time.timeScale = 0;
                             // Set the mission completed to Level1 and active the idle state until the player reach to next task
                             PlayerPrefs.SetString("MissionCompleted", "Level3");
                             PlayerPrefs.SetString("IdeleState", "true");

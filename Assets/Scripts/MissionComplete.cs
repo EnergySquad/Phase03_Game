@@ -5,6 +5,7 @@ using UnityEngine.SceneManagement;
 public class ChildChecker : MonoBehaviour
 {
     public GameObject gameOver;
+    public GameObject leaderBoard;
 
     void Update()
     {
@@ -32,6 +33,8 @@ public class ChildChecker : MonoBehaviour
         // Resume the game
         Time.timeScale = 1;
         // gameOver.SetActive(false);
+        leaderBoard.SetActive(true);
+        Time.timeScale = 0;
         // Set the mission completed to Level1 and activate the idle state until the player reaches the next task
         PlayerPrefs.SetString("MissionCompleted", "Level5");
         PlayerPrefs.SetString("IdeleState", "true");

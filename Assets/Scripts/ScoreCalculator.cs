@@ -5,6 +5,7 @@ using System.Globalization;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using UnityEngine.SceneManagement;
+using static ScoreCalculator;
 
 public class ScoreCalculator : MonoBehaviour
 {
@@ -18,9 +19,10 @@ public class ScoreCalculator : MonoBehaviour
     public Image fill;
     private double prevUnits;
     private float Score;
-    public Text resultUnits;
+    //public Text resultUnits;
     public float decreasingConst = 1.0f;
     public double consumptionRate;
+    // public GameObject gameOver;
 
     // Get the current date
     System.DateTime theTime = System.DateTime.Now;
@@ -29,11 +31,13 @@ public class ScoreCalculator : MonoBehaviour
     public void Start()
     {
         // Start by initializing prevUnits
+        Debug.Log("*****Initializing prevUnits ");
         StartCoroutine(InitializePrevUnits());
     }
 
     private IEnumerator InitializePrevUnits()
     {
+        Debug.Log("*****Inside InitializePrevUnits ");
         string jwtToken = PlayerPrefs.GetString("JWTToken");
 
         IEnumerator getCurrentUnits = AuthenticationManager.GetUnits(CurrentConsumptionUrl, jwtToken, "CurrentState");
@@ -45,47 +49,55 @@ public class ScoreCalculator : MonoBehaviour
             CurrentConsumptionUnits currentConsumptionUnits = JsonUtility.FromJson<CurrentConsumptionUnits>(CurrentUnits);
             if (currentConsumptionUnits != null)
             {
+                Debug.Log("*****Set the prevUnits");
                 prevUnits = currentConsumptionUnits.currentConsumption / 1000;
             }
         }
 
+        Debug.Log("*****Call the Current Consumption function");
         // After initializing prevUnits, start invoking GetCurrentConsumption every 10 seconds
         InvokeRepeating("GetCurrentConsumption", 1, 10);
     }
 
     public void GetCurrentConsumption()
     {
+        Debug.Log("****call AverageDailyConsumption");
         // Fetch the current and average daily consumption units to calculate the score
         StartCoroutine(AverageDailyConsumption());
     }
 
     private IEnumerator AverageDailyConsumption()
     {
+        Debug.Log("****Inside AverageDailyConsumption");
         // Get the JWT token from the player preferences
         string jwtToken = PlayerPrefs.GetString("JWTToken");
         Score = PlayerPrefs.GetFloat("TotalScore");
 
         string Month = CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(theTime.Month).ToUpper();
 
+        Debug.Log("****Get the current consumption units");
         // Get the current consumption units
         IEnumerator getCurrentUnits = AuthenticationManager.GetUnits(CurrentConsumptionUrl, jwtToken, "CurrentState");
         yield return StartCoroutine(getCurrentUnits);
         string CurrentUnits = getCurrentUnits.Current as string;
 
+        Debug.Log("****Get the average consumption units for the specific month");
         // Get the average consumption units for the specific month
         IEnumerator getPrvMonthUnits = AuthenticationManager.GetUnits(SpecificMonthConsumptionUrl, jwtToken, "SpecificMonth", theTime.Year, Month);
         yield return StartCoroutine(getPrvMonthUnits);
         string PrevMonthUnits = getPrvMonthUnits.Current as string;
 
+        Debug.Log("****Daily");
         // Get the daily consumption units for the current month
         IEnumerator getDailyConsumption = AuthenticationManager.GetUnits(DailyConsumptionUrl, jwtToken, "CurrentState");
         yield return StartCoroutine(getDailyConsumption);
         string DailyConsumption = getDailyConsumption.Current as string;
 
+        Debug.Log("****Call Calculating Function");
         // Calculate the score
         if (PrevMonthUnits != null && CurrentUnits != null && DailyConsumption != null)
         {
-            ComputeScore(PrevMonthUnits, CurrentUnits, DailyConsumption);
+            PrintPCbSM(PrevMonthUnits, CurrentUnits, DailyConsumption);
         }
         else
         {
@@ -93,28 +105,39 @@ public class ScoreCalculator : MonoBehaviour
         }
     }
 
-    private void ComputeScore(string PrevMonthUnits, string CurrentUnits, string DailyConsumption)
+    private void PrintPCbSM(string PrevMonthUnits, string CurrentUnits, string DailyConsumption)
     {
         try
         {
+            Debug.Log("****Inside PrintPCbSM");
             MonthlyPowerConsumption monthlyPowerConsumption = JsonUtility.FromJson<MonthlyPowerConsumption>(PrevMonthUnits);
+            Debug.Log("****MonthlyPowerConsumption = " + monthlyPowerConsumption);
             DailyPowerConsumption dailyPowerConsumption = JsonConvert.DeserializeObject<DailyPowerConsumption>(DailyConsumption);
+            //Debug.Log("****DailyPowerConsumption = " + dailyPowerConsumption);
             CurrentConsumptionUnits currentConsumptionUnits = JsonUtility.FromJson<CurrentConsumptionUnits>(CurrentUnits);
+            Debug.Log("****CurrentConsumptionUnits = " + currentConsumptionUnits);
 
-            if (currentConsumptionUnits != null && monthlyPowerConsumption != null && dailyPowerConsumption != null)
+            //if (currentConsumptionUnits != null && monthlyPowerConsumption != null && dailyPowerConsumption != null)
+            if (currentConsumptionUnits != null && monthlyPowerConsumption != null )    //Delete after debugging
             {
+                Debug.Log("**** Assign units");
                 double avgDailyConsumption = monthlyPowerConsumption.monthlyPowerConsumptionView.units / 30.0;
                 double currentDayUnits = currentConsumptionUnits.currentConsumption / 1000;
 
+                Debug.Log("****Set Prev Day");
                 prevDay = theTime.Day == 1 ? 30 : theTime.Day - 1;
 
+                Debug.Log("****Try to get Prev day units");
                 dailyPowerConsumption.dailyPowerConsumptionView.dailyUnits.TryGetValue(prevDay, out float dailyUnitsAmount);
-
+                Debug.Log("*****Prev Day Units" + dailyUnitsAmount);
                 // Algorithm to calculate the consumption rate
                 double consumptionForTenSec = currentDayUnits - prevUnits; // consumption for 10 seconds by getting 10s gap values
                 double averageConsumptionForTenSec = dailyUnitsAmount / (24 * 60 * 6); // average consumption for 10 seconds by considering yesterday's consumption
+                //double averageConsumptionForTenSec = avgDailyConsumption / (24 * 60 * 6); // average consumption for 10 seconds by considering yesterday's consumption //Delete after debugging
 
+                Debug.Log("****Start to cal rate");
                 consumptionRate = consumptionForTenSec / averageConsumptionForTenSec;
+                Debug.Log("****Finish Cal");
 
                 string dataList = $"consumptionRate = {consumptionRate}\n" +
                                   $"consumptionForTenSec = {consumptionForTenSec}\n" +
@@ -122,17 +145,21 @@ public class ScoreCalculator : MonoBehaviour
                                   $"Current Consumption = {currentDayUnits}\n" +
                                   $"Previous Consumption = {prevUnits}\n" +
                                   $"Decreasing Constant = {decreasingConst}\n" +
-                                  $"Daily Consumption = {dailyUnitsAmount}\n";
+                                  //$"Daily Consumption = {dailyUnitsAmount}\n";
+                                  $"Average Daily Consumption = {avgDailyConsumption}\n"; //Delete after debugging
 
                 // Store the current consumption units for the next calculation
                 prevUnits = currentDayUnits;
 
                 dataList += $"Score = {Score}\n";
-                resultUnits.text = dataList;
+                //resultUnits.text = dataList;
 
+                Debug.Log("*****Calculate the score");
                 Score -= (float)(consumptionRate * decreasingConst);
+
                 if (Score <= 0)
                 {
+                    Debug.Log("Start to check score");
                     // gameOver.SetActive(true);
                     // Pause the game
                     Time.timeScale = 0;
@@ -141,6 +168,7 @@ public class ScoreCalculator : MonoBehaviour
                 }
                 else
                 {
+                    Debug.Log("*****Set the score according to Api");
                     PlayerPrefs.SetFloat("TotalScore", Score);
                     SetScoreValue();
                 }
@@ -154,6 +182,7 @@ public class ScoreCalculator : MonoBehaviour
 
     public void SetDecreasingConst(float decVal)
     {
+        Debug.Log("****DecrConst = " + decreasingConst);
         decreasingConst = decVal;
     }
 
@@ -177,13 +206,14 @@ public class ScoreCalculator : MonoBehaviour
         {
             Score += value_add;
         }
-
+        Debug.Log("***Score Increment");
         PlayerPrefs.SetFloat("TotalScore", Score);
         SetScoreValue();
     }
 
     public void SetScoreValue()
     {
+        Debug.Log("****Set Score in Slider");
         score.text = Score.ToString();
         slider.value = Score;
         fill.color = gradient.Evaluate(slider.normalizedValue);

@@ -18,7 +18,7 @@ public class ShakeTrigger : MonoBehaviour
 
     void Update () {
 
-        if (collidedDrones == 8) {
+        if (collidedDrones == 2) {
             PlayerPrefs.SetFloat("TotalScore",0f);
         }
     }

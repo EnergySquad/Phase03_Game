@@ -8,6 +8,7 @@ public class PauseMenuController : MonoBehaviour
     public static bool GameIsPaused = false;
 
     public GameObject pauseMenuUI;
+    public GameObject leaderBoard;
 
     void Update()
     {
@@ -45,12 +46,24 @@ public class PauseMenuController : MonoBehaviour
     public void LoadMenu()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene("Menu");
+        SceneManager.LoadScene("WelcomePage");
     }
 
     public void QuitGame()
     {
         Debug.Log("Quitting game...");
         Application.Quit();
+    }
+
+    public void DisplayLeaderBoard()
+    {
+        leaderBoard.SetActive(true);
+        Time.timeScale = 0;
+    }
+
+    public void CloseLeaderBoard()
+    {
+        leaderBoard.SetActive(false);
+        Time.timeScale = 1;
     }
 }
