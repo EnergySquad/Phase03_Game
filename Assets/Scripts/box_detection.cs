@@ -9,6 +9,7 @@ public class BoxDetection : MonoBehaviour
    
     public ScoreCalculator ScoreCalculator;
     public GameObject box;
+    public GameObject leaderBoard;
     // public GameObject task_finished;
     // public ColiderCalculator ColiderCalculator;
 
@@ -30,7 +31,7 @@ public class BoxDetection : MonoBehaviour
             ScoreCalculator.GetComponent<ScoreCalculator>().UpdateDecreasingConst(5.0f);
             StartCoroutine(Completed());
 
-          
+            
             // Debug.Log("Trial 2 are completed");
             PlayerPrefs.SetString("MissionCompleted", "Level4");
             PlayerPrefs.SetString("IdeleState", "true");
@@ -42,6 +43,8 @@ public class BoxDetection : MonoBehaviour
     {
         yield return new WaitForSeconds(3);
         completed.SetActive(false);
+        leaderBoard.SetActive(true);
+        Time.timeScale = 0;
     }
 
 

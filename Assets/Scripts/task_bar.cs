@@ -13,7 +13,7 @@ public class task_bar : MonoBehaviour
     public Light pointLight; 
     public Animator MyAnime;
     public string typing;
-
+    public GameObject leaderBoard;
 
 
     public ScoreCalculator ScoreCalculator;
@@ -81,6 +81,9 @@ public class task_bar : MonoBehaviour
                 pointLight.color = blueColor;
                 ScoreCalculator.GetComponent<ScoreCalculator>().UpdateDecreasingConst(10f);
                 MyAnime.SetBool(typing, false);
+
+                leaderBoard.SetActive(true);
+                Time.timeScale = 0;
                 PlayerPrefs.SetString("MissionCompleted", "Level2");
                 PlayerPrefs.SetString("IdeleState", "true");
             }

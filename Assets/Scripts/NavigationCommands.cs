@@ -9,8 +9,10 @@ public class NavigationCommands : MonoBehaviour
 {
     public SceneLoader sceneLoader;
     public CheckQuesCompleted linkToQues;
-    private string currentSceneName;
     public PopUpMessage popUpMsg;
+
+    private string currentSceneName;
+    private string IsQuestionnaireCompleted;
 
     //When the player wants to go back to the welcome page
     public void GoToWelcomePage(string currentScene)
@@ -73,16 +75,28 @@ public class NavigationCommands : MonoBehaviour
         StartCoroutine(ContinueGame());
     }
 
+    public void ShowLeaderboard()
+    {
+        StartCoroutine(CheckQuestionnaireStatusAndLoadLeaderboard());
+    }
+
+    private IEnumerator CheckQuestionnaireStatusAndLoadLeaderboard()
+    {
+        yield return StartCoroutine(GetQuestionnaireStatus());
+        if (IsQuestionnaireCompleted == "True")
+        {
+            SceneManager.LoadScene("Leaderboard");
+        }
+        else
+        {
+            popUpMsg.GetComponent<PopUpMessage>().ClickButton();
+        }
+    }
+
     private IEnumerator ContinueGame()
     {
-        //Check if the questionnaire is complete
-        CheckQuesCompleted quesDetails = gameObject.AddComponent<CheckQuesCompleted>();
-        IEnumerator QuestionnaireCoroutine = quesDetails.CheckQuesStatus();
-        yield return StartCoroutine(QuestionnaireCoroutine);
+        yield return StartCoroutine(GetQuestionnaireStatus());
 
-        //Set the questionnaire status in the player prefs
-        string IsQuestionnaireCompleted = PlayerPrefs.GetString("IsQuestionnaireCompleted");
-        
         if (IsQuestionnaireCompleted == "True")
         {
             sceneLoader.GetComponent<SceneLoader>().LoadGame(); //If the questionnaire is complete, load the game
@@ -91,5 +105,16 @@ public class NavigationCommands : MonoBehaviour
         {
             sceneLoader.GetComponent<SceneLoader>().LoadQuestionnairePage();    //If the questionnaire is not complete, load the questionnaire page
         }
+    }
+
+    private IEnumerator GetQuestionnaireStatus()
+    {
+        //Check if the questionnaire is complete
+        CheckQuesCompleted quesDetails = gameObject.AddComponent<CheckQuesCompleted>();
+        IEnumerator QuestionnaireCoroutine = quesDetails.CheckQuesStatus();
+        yield return StartCoroutine(QuestionnaireCoroutine);
+
+        //Set the questionnaire status in the player prefs
+        IsQuestionnaireCompleted = PlayerPrefs.GetString("IsQuestionnaireCompleted");
     }
 }

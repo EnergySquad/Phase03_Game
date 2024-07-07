@@ -27,8 +27,6 @@ public class MainController : MonoBehaviour
     void Start()
     {
         // Initialize PlayerPrefs
-        PlayerPrefs.SetString("MissionCompleted", "Level4");
-        PlayerPrefs.SetFloat("TotalScore",750f);
         PlayerPrefs.SetString("IdeleState", "true");
 
         // Initialize doors and tasks
@@ -68,6 +66,7 @@ public class MainController : MonoBehaviour
                         break;
                     case "Level5":
                         door5.SetActive(false);
+                        PlayerPrefs.SetFloat("FinalScore", PlayerPrefs.GetFloat("TotalScore"));
                         Debug.Log("Task 5 is completed");
                         Debug.Log("All tasks are completed");
                         SceneManager.LoadScene("WelcomePage");

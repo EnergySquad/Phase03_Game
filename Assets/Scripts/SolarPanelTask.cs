@@ -6,6 +6,7 @@ public class SolarPanelTask : MonoBehaviour
 {
     public ScoreCalculator ScoreCalculator;
     public GameObject gameOver;
+    public GameObject leaderBoard;
     private int NoOfAssets = 0;
 
     //Calculate Score when player collects coins
@@ -40,6 +41,11 @@ public class SolarPanelTask : MonoBehaviour
                 // Resume the game
                 Time.timeScale = 1;
                 gameOver.SetActive(false);
+
+                //Display leader board
+                leaderBoard.SetActive(true);
+                Time.timeScale = 0;
+
                 // Set the mission completed to Level1 and active the idle state until the player reach to next task
                 PlayerPrefs.SetString("MissionCompleted", "Level1");
                 PlayerPrefs.SetString("IdeleState", "true");

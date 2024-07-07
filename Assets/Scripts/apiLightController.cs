@@ -51,13 +51,7 @@ public class apiLightController : MonoBehaviour
                 ApiResponse response = JsonUtility.FromJson<ApiResponse>(jsonResponse);
                 // Parse the response and set the overall illuminance
                 overallIlluminance = response.score * 1.2f;
-
-                if (PlayerPrefs.GetString("InitialScore") == "False")
-                {
-                    PlayerPrefs.SetFloat("TotalScore", response.score * 1000);
-                    PlayerPrefs.SetString("InitialScore", "True");
-                }
-                }
+            }
             else
             {
                 Debug.LogError("Failed to fetch overall illuminance: " + webRequest.error);
